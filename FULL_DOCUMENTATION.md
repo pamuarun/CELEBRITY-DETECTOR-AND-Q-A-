@@ -119,14 +119,14 @@ Copy the output and use it as needed in environment variables or CircleCI secret
    ```bash
    gcloud container clusters get-credentials llmops-cluster1 \
    --region us-central1 \
-   --project gen-lang-client-0729539659
+   --project gen-lang-client-0729539659 #(your Project id)
    ```
 
 3. **Create a Kubernetes secret to store your LLM API key:**
 
    ```bash
    kubectl create secret generic llmops-secrets \
-   --from-literal=GROQ_API_KEY="your_actual_groq_api_key"
+   --from-literal=GEMINI_API_KEY="your_actual_gemini_api_key"
    ```
 
    > This secret will be referenced in your Kubernetes deployment file to securely fetch the `GROQ_API_KEY`.
