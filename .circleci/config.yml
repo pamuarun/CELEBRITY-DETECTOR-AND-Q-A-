@@ -3,18 +3,17 @@ version: 2.1
 jobs:
   build_docker_image:
     machine:
-      image: ubuntu-2204:current   # ✅ stable image
+      image: ubuntu-2204:current
     steps:
       - checkout
 
-      # Install gcloud NON-INTERACTIVE
+      # Install gcloud (non-interactive)
       - run:
           name: Install Google Cloud SDK
           command: |
             export CLOUDSDK_CORE_DISABLE_PROMPTS=1
             curl -sSL https://sdk.cloud.google.com | bash > /dev/null
             source $HOME/google-cloud-sdk/path.bash.inc
-            gcloud --quiet components install kubectl
             gcloud --version
 
       # Authenticate
@@ -26,7 +25,7 @@ jobs:
             gcloud config set project $GOOGLE_PROJECT_ID
             gcloud auth configure-docker us-central1-docker.pkg.dev -q
 
-      # Build & Push
+      # Build & Push Docker image
       - run:
           name: Build and Push Docker Image
           command: |
@@ -40,14 +39,22 @@ jobs:
     steps:
       - checkout
 
-      # Install gcloud + kubectl
+      # ✅ Install kubectl (FIXED METHOD)
+      - run:
+          name: Install kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            sudo mv kubectl /usr/local/bin/
+            kubectl version --client
+
+      # Install gcloud
       - run:
           name: Install Google Cloud SDK
           command: |
             export CLOUDSDK_CORE_DISABLE_PROMPTS=1
             curl -sSL https://sdk.cloud.google.com | bash > /dev/null
             source $HOME/google-cloud-sdk/path.bash.inc
-            gcloud --quiet components install kubectl
 
       # Authenticate
       - run:
