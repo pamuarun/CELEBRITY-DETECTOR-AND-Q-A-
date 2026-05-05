@@ -1,71 +1,77 @@
 version: 2.1
 
-executors:
-  docker-executor:
-    docker:
-      - image: google/cloud-sdk:latest
-    working_directory: ~/repo
-
 jobs:
-  checkout_code:
-    executor: docker-executor
-    steps:
-      - checkout
-
   build_docker_image:
-    executor: docker-executor
+    machine: true   # ✅ Docker available here
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Authenticate with google cloud
-          command: |
-              echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
-              gcloud auth activate-service-account --key-file=gcp-key.json
-              gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
 
+      # Install gcloud
       - run:
-          name: Build and Push Image
+          name: Install Google Cloud SDK
           command: |
-              docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest .
-              docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest
+            curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+            source $HOME/google-cloud-sdk/path.bash.inc
+            gcloud --version
+
+      # Authenticate
+      - run:
+          name: Authenticate with Google Cloud
+          command: |
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+            gcloud auth activate-service-account --key-file=gcp-key.json
+            gcloud config set project $GOOGLE_PROJECT_ID
+            gcloud auth configure-docker us-central1-docker.pkg.dev -q
+
+      # Build & Push Docker image
+      - run:
+          name: Build and Push Docker Image
+          command: |
+            docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest .
+            docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest
+
 
   deploy_to_gke:
-    executor: docker-executor
+    machine: true   # ✅ Also needs kubectl + docker env
     steps:
       - checkout
-      - setup_remote_docker
+
+      # Install gcloud
       - run:
-          name: Authenticate with google cloud
+          name: Install Google Cloud SDK
           command: |
-              echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
-              gcloud auth activate-service-account --key-file=gcp-key.json
-              gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
-      
+            curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+            source $HOME/google-cloud-sdk/path.bash.inc
+
+      # Authenticate
+      - run:
+          name: Authenticate with Google Cloud
+          command: |
+            echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+            gcloud auth activate-service-account --key-file=gcp-key.json
+            gcloud config set project $GOOGLE_PROJECT_ID
+
+      # Get cluster credentials
       - run:
           name: Configure GKE
           command: |
-              gcloud container clusters get-credentials $GKE_CLUSTER --region $GOOGLE_COMPUTE_REGION --project $GOOGLE_PROJECT_ID
+            gcloud container clusters get-credentials $GKE_CLUSTER \
+              --region $GOOGLE_COMPUTE_REGION \
+              --project $GOOGLE_PROJECT_ID
+
+      # Deploy
       - run:
           name: Deploy to GKE
           command: |
-              kubectl apply -f kubernetes-deployment.yaml --validate=false
-              kubectl rollout restart deployment llmops-app
+            kubectl apply -f kubernetes-deployment.yaml --validate=false
+            kubectl rollout restart deployment llmops-app
+
 
 workflows:
   version: 2
   deploy_pipeline:
     jobs:
-      - checkout_code
-      - build_docker_image:
-          requires:
-            - checkout_code
+      - build_docker_image
       - deploy_to_gke:
           requires:
             - build_docker_image
-
-    
-
-
-
-
