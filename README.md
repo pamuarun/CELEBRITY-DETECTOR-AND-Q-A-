@@ -1,5 +1,7 @@
 # Celebrity Detector and Q&A
 
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg?logo=python&logoColor=white)](https://www.python.org/) [![Flask](https://img.shields.io/badge/Flask-3.1.3-black.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/) [![Gemini API](https://img.shields.io/badge/Gemini_API-2.5_Flash-8E75B2.svg?logo=google&logoColor=white)](https://ai.google.dev/) [![OpenCV](https://img.shields.io/badge/OpenCV-4.13.0-5C3EE8.svg?logo=opencv&logoColor=white)](https://opencv.org/) [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/) [![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Google Cloud](https://img.shields.io/badge/Google_Cloud-GCP-4285F4.svg?logo=googlecloud&logoColor=white)](https://cloud.google.com/) [![CircleCI](https://img.shields.io/badge/CircleCI-CI%2FCD-343434.svg?logo=circleci&logoColor=white)](https://circleci.com/)
+
 Welcome to the **Celebrity Detector and Q&A** project! This repository contains a complete, end-to-end web application that leverages computer vision and generative AI to detect celebrities from images and answer context-aware questions about them using Google's Gemini 2.5 Flash model. 
 
 ## 🚀 Project Overview
@@ -18,7 +20,7 @@ This project is built with scalability and automation in mind, featuring a robus
 2. **Detection Phase:** The application uses computer vision capabilities (OpenCV/custom models) to analyze the image and identify the celebrity.
 3. **Question & Answer (Q&A):** The user submits a question about the identified celebrity.
 4. **LLM Integration:** The backend sends a request to the **Gemini 2.5 Flash** API via the Google GenAI library, establishing context about the celebrity.
-5. **Response Delivery:** The model's response is retrieved and presented to the user on the web interface.
+5. **Response Delivery:** The model's response is retrieved and presented to the user on the web interface. *(Note: All generated outputs and processed files are also stored securely in the `Outputs` folder).*
 6. **Deployment & CI/CD:** Every push to the repository triggers a CircleCI pipeline that builds a new Docker image, pushes it to GCP Artifact Registry, and updates the deployment on a Google Kubernetes Engine (GKE) cluster.
 
 ## 🛠️ Tech Stack
@@ -110,6 +112,4 @@ The `FULL_DOCUMENTATION.md` file contains detailed procedures for:
 - Configuring CircleCI for continuous deployment and setting environment variables.
 - Securing your `GEMINI_API_KEY` inside the Kubernetes cluster using `kubectl` secrets.
 
-## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check out the [issues page](https://github.com/pamuarun/CELEBRITY-DETECTOR-AND-Q-A-/issues) if you want to contribute.
