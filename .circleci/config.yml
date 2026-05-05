@@ -14,12 +14,17 @@ jobs:
             export CLOUDSDK_CORE_DISABLE_PROMPTS=1
             curl -sSL https://sdk.cloud.google.com | bash > /dev/null
             source $HOME/google-cloud-sdk/path.bash.inc
+
+            # ✅ Persist PATH for next steps
+            echo 'export PATH=$HOME/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
+
             gcloud --version
 
       # Authenticate
       - run:
           name: Authenticate with Google Cloud
           command: |
+            source $BASH_ENV
             echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
             gcloud auth activate-service-account --key-file=gcp-key.json
             gcloud config set project $GOOGLE_PROJECT_ID
@@ -29,6 +34,7 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
+            source $BASH_ENV
             docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest .
             docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT_ID/llmops-repo/llmops-app:latest
 
@@ -48,18 +54,19 @@ jobs:
             sudo mv kubectl /usr/local/bin/
             kubectl version --client
 
-      # Install gcloud + GKE auth plugin
+      # Install gcloud + plugin (FIXED)
       - run:
-          name: Install gcloud + GKE auth plugin
+          name: Install gcloud + GKE plugin
           command: |
             export CLOUDSDK_CORE_DISABLE_PROMPTS=1
             curl -sSL https://sdk.cloud.google.com | bash > /dev/null
             source $HOME/google-cloud-sdk/path.bash.inc
 
-            # ✅ Install required plugin
+            # ✅ Install plugin
             gcloud components install gke-gcloud-auth-plugin -q
 
-            # ✅ Enable plugin
+            # ✅ CRITICAL FIX (this was missing)
+            echo 'export PATH=$HOME/google-cloud-sdk/bin:$PATH' >> $BASH_ENV
             echo 'export USE_GKE_GCLOUD_AUTH_PLUGIN=True' >> $BASH_ENV
 
       # Authenticate
@@ -85,6 +92,10 @@ jobs:
           name: Deploy to GKE
           command: |
             source $BASH_ENV
+
+            # 🔍 Debug (important)
+            which gke-gcloud-auth-plugin || echo "PLUGIN NOT FOUND"
+
             kubectl apply -f kubernetes-deployment.yaml --validate=false
             kubectl rollout restart deployment llmops-app
 
