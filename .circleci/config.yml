@@ -20,7 +20,15 @@ jobs:
       - run:
           name: Authenticate with google cloud
           command: |
+              if [ -z "$GCLOUD_SERVICE_KEY" ]; then
+                echo "ERROR: GCLOUD_SERVICE_KEY environment variable is not set. Please configure it in CircleCI project settings." >&2
+                exit 1
+              fi
               echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+              if [ ! -s gcp-key.json ]; then
+                echo "ERROR: gcp-key.json is empty. GCLOUD_SERVICE_KEY may not be valid base64-encoded JSON." >&2
+                exit 1
+              fi
               gcloud auth activate-service-account --key-file=gcp-key.json
               gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
 
@@ -38,7 +46,15 @@ jobs:
       - run:
           name: Authenticate with google cloud
           command: |
+              if [ -z "$GCLOUD_SERVICE_KEY" ]; then
+                echo "ERROR: GCLOUD_SERVICE_KEY environment variable is not set. Please configure it in CircleCI project settings." >&2
+                exit 1
+              fi
               echo "$GCLOUD_SERVICE_KEY" | base64 --decode > gcp-key.json
+              if [ ! -s gcp-key.json ]; then
+                echo "ERROR: gcp-key.json is empty. GCLOUD_SERVICE_KEY may not be valid base64-encoded JSON." >&2
+                exit 1
+              fi
               gcloud auth activate-service-account --key-file=gcp-key.json
               gcloud auth configure-docker us-central1-docker.pkg.dev || gcloud auth configure-docker
       
